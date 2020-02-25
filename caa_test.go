@@ -46,6 +46,17 @@ var testcases = []testcaseInfo{
     {"cname-cname-deny.basic.caatestsuite.com.", "caatestsuite.com"},
     {"sub1.cname-deny.basic.caatestsuite.com.", "caatestsuite.com"},
     {"deny.permit.basic.caatestsuite.com.", "caatestsuite.com"},
+
+    // If we are going to test subdomains for missing CAA, the parent domains also shouldn't have CAA.
+    {"caatestsuite.com.", ""},
+    {"basic.caatestsuite.com.", ""},
+
+    // Only subdomains of a DNAME are aliased, not the DNAME itself.
+    {"dname-deny.basic.caatestsuite.com.", ""},
+
+    // Don't check parents of CNAME or DNAME targets.
+    {"sub1.dname-deny.basic.caatestsuite.com.", ""},
+    {"cname-deny-sub.basic.caatestsuite.com.", ""},
 }
 
 func extractIssue(caa []*dns.CAA) (string, error) {
@@ -63,8 +74,7 @@ func extractIssue(caa []*dns.CAA) (string, error) {
 
 func TestResolveCAA(t *testing.T) {
 	for _, testcase := range testcases {
-		recursions := 0
-		caa, err := resolveCAA(testcase.subdomain, &recursions)
+		caa, err := resolveCAA(testcase.subdomain)
 		if err != nil {
 			t.Errorf("%s: got error: %s", testcase.subdomain, err)
 			continue
