@@ -39,6 +39,8 @@ type testcaseInfo struct {
 var testcases = []testcaseInfo{
     {"empty.basic.caatestsuite.com.", ";"},
     {"deny.basic.caatestsuite.com.", "caatestsuite.com"},
+    {"sub1.deny.basic.caatestsuite.com.", "caatestsuite.com"},
+    {"sub2.sub1.deny.basic.caatestsuite.com.", "caatestsuite.com"},
     {"*.deny.basic.caatestsuite.com.", "caatestsuite.com"},
     {"cname-deny.basic.caatestsuite.com.", "caatestsuite.com"},
     {"cname-cname-deny.basic.caatestsuite.com.", "caatestsuite.com"},
