@@ -72,32 +72,6 @@ func queryDNS(domain string, rrtype uint16) (*dns.Msg, error) {
 	return resp, nil
 }
 
-func queryDNAME(domain string) (string, error) {
-	resp, err := queryDNS(domain, dns.TypeDNAME)
-	if err != nil {
-		return "", err
-	}
-	for _, rr := range resp.Answer {
-		if dname, isDNAME := rr.(*dns.DNAME); isDNAME {
-			return dname.Target, nil
-		}
-	}
-	return "", nil
-}
-
-func queryCNAME(domain string) (string, error) {
-	resp, err := queryDNS(domain, dns.TypeCNAME)
-	if err != nil {
-		return "", err
-	}
-	for _, rr := range resp.Answer {
-		if cname, isCNAME := rr.(*dns.CNAME); isCNAME {
-			return cname.Target, nil
-		}
-	}
-	return "", nil
-}
-
 func queryCAA(domain string) ([]*dns.CAA, error) {
 	caas := []*dns.CAA{}
 	resp, err := queryDNS(domain, dns.TypeCAA)
@@ -134,41 +108,15 @@ func resolveCAA(domain string, recursions *int) ([]*dns.CAA, error) {
 	if domain == "." {
 		return []*dns.CAA{}, nil
 	}
-	cnameTarget, err := queryCNAME(domain)
+
+	caa, err := queryCAA(domain)
 	if err != nil {
 		return nil, err
 	}
-	if cnameTarget != "" {
-		// This implies domain has no CAA or DNAME records, since CNAME can't coexist with other record types
-		caa, err := resolveCAA(cnameTarget, recursions)
-		if err != nil {
-			return nil, err
-		}
-		if len(caa) != 0 {
-			return caa, nil
-		}
-	} else {
-		caa, err := queryCAA(domain)
-		if err != nil {
-			return nil, err
-		}
-		if len(caa) != 0 {
-			return caa, nil
-		}
-		dnameTarget, err := queryDNAME(domain)
-		if err != nil {
-			return nil, err
-		}
-		if dnameTarget != "" {
-			caa, err := resolveCAA(dnameTarget, recursions)
-			if err != nil {
-				return nil, err
-			}
-			if len(caa) != 0 {
-				return caa, nil
-			}
-		}
+	if len(caa) != 0 {
+		return caa, nil
 	}
+
 	return resolveCAA(parent(domain), recursions)
 }
 
