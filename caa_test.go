@@ -74,8 +74,7 @@ func extractIssue(caa []*dns.CAA) (string, error) {
 
 func TestResolveCAA(t *testing.T) {
 	for _, testcase := range testcases {
-		recursions := 0
-		caa, err := resolveCAA(testcase.subdomain, &recursions)
+		caa, err := resolveCAA(testcase.subdomain)
 		if err != nil {
 			t.Errorf("%s: got error: %s", testcase.subdomain, err)
 			continue

@@ -99,12 +99,7 @@ func parent(domain string) string {
 	}
 }
 
-func resolveCAA(domain string, recursions *int) ([]*dns.CAA, error) {
-	if *recursions >= 100 {
-		return nil, errors.New("Too many recursions")
-	}
-	(*recursions)++
-
+func resolveCAA(domain string) ([]*dns.CAA, error) {
 	if domain == "." {
 		return []*dns.CAA{}, nil
 	}
@@ -117,7 +112,7 @@ func resolveCAA(domain string, recursions *int) ([]*dns.CAA, error) {
 		return caa, nil
 	}
 
-	return resolveCAA(parent(domain), recursions)
+	return resolveCAA(parent(domain))
 }
 
 func main() {
@@ -131,8 +126,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	recursions := 0
-	caa, err := resolveCAA(domain, &recursions)
+	caa, err := resolveCAA(domain)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s: %s\n", domain, err)
 		os.Exit(1)
